@@ -22,7 +22,7 @@ OBJS		+= sdhi-shmobile.o
 OBJS		+= sdhi-sh7372.o
 endif
 
-AFLAGS_head.o += -DTEXT_OFFSET=$(TEXT_OFFSET) $(DISABLE_LTO) -O0
+AFLAGS_head.o += -DTEXT_OFFSET=$(TEXT_OFFSET)
 AFLAGS_head.o += -Wa,-mcpu=cortex-a15
 HEAD	= head.o
 OBJS	+= misc.o

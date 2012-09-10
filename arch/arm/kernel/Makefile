@@ -86,5 +86,3 @@ obj-$(CONFIG_EARLY_PRINTK)	+= early_printk.o
 
 extra-y := $(head-y) init_task.o vmlinux.lds
 
-CFLAGS_process.o = $(DISABLE_LTO)
-
