@@ -962,6 +962,12 @@ config CC_OPTIMIZE_FOR_SIZE
 
 	  If unsure, say Y.
 
+config CC_LINK_TIME_OPTIMIZATION
+        bool "Enable link-time optimization"
+        help
+         Enabling this option will turn on -flto and
+         -fno-toplevel-reorder for KBUILD_CFLAGS.
+
 config SYSCTL
 	bool
 
@@ -1467,3 +1473,4 @@ config PADATA
 	bool
 
 source "kernel/Kconfig.locks"
+
