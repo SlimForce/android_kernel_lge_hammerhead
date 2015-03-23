@@ -390,7 +390,9 @@ KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
 
 ifdef CONFIG_CC_LINK_TIME_OPTIMIZATION
-KBUILD_CFLAGS        += -flto -fno-toplevel-reorder
+LDFLAGS_MODULE  += -flto
+CFLAGS_KERNEL	+= -flto -fno-toplevel-reorder -fuse-linker-plugin
+KBUILD_CFLAGS   += -flto -fno-toplevel-reorder -fuse-linker-plugin
 endif
 
 KBUILD_AFLAGS   := -D__ASSEMBLY__
