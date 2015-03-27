@@ -189,7 +189,7 @@ static void dwc3_otg_set_peripheral_regs(struct dwc3_otg *dotg)
  *
  * Returns 0 on success otherwise negative errno.
  */
-static int dwc3_otg_start_host(struct usb_otg *otg, int on)
+static int __devinit dwc3_otg_start_host(struct usb_otg *otg, int on)
 {
 	struct dwc3_otg *dotg = container_of(otg, struct dwc3_otg, otg);
 	struct dwc3_ext_xceiv *ext_xceiv = dotg->ext_xceiv;
@@ -732,7 +732,7 @@ void dwc3_otg_init_sm(struct dwc3_otg *dotg)
  * NOTE: After any change in phy->state,
  * we must reschdule the state machine.
  */
-static void dwc3_otg_sm_work(struct work_struct *w)
+static void __devinit dwc3_otg_sm_work(struct work_struct *w)
 {
 	struct dwc3_otg *dotg = container_of(w, struct dwc3_otg, sm_work.work);
 	struct usb_phy *phy = dotg->otg.phy;
