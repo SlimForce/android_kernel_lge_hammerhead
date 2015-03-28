@@ -64,7 +64,11 @@
 #define ADRENO_DEFAULT_PWRSCALE_POLICY  NULL
 #endif
 
+#ifdef CONFIG_DEBUG_FS
 void adreno_debugfs_init(struct kgsl_device *device);
+#else
+static void adreno_debugfs_init(struct kgsl_device *device);
+#endif
 
 #define ADRENO_ISTORE_START 0x5000 /* Istore offset */
 
@@ -844,7 +848,7 @@ static inline unsigned int adreno_getreg(struct adreno_device *adreno_dev,
 #ifdef CONFIG_DEBUG_FS
 void adreno_debugfs_init(struct kgsl_device *device);
 #else
-static inline void adreno_debugfs_init(struct kgsl_device *device) { }
+void adreno_debugfs_init(struct kgsl_device *device);
 #endif
 
 /**
@@ -955,8 +959,6 @@ static inline void adreno_set_protected_registers(struct kgsl_device *device,
 
 #ifdef CONFIG_DEBUG_FS
 void adreno_debugfs_init(struct kgsl_device *device);
-#else
-static inline void adreno_debugfs_init(struct kgsl_device *device) { }
 #endif
 
 #endif /*__ADRENO_H */

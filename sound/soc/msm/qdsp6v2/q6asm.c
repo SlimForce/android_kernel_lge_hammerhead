@@ -481,7 +481,9 @@ void send_asm_custom_topology(struct audio_client *ac)
 err_unmap:
 	q6asm_memory_unmap_regions(ac, IN);
 err_map:
+#ifdef CONFIG_DEBUG_FS
 	q6asm_mmap_apr_dereg();
+#endif
 	set_custom_topology = 1;
 mmap_fail:
 	return;
@@ -554,6 +556,7 @@ int q6asm_map_rtac_block(struct rtac_cal_block_data *cal_block)
 		}
 	}
 
+#ifdef CONFIG_DEBUG_FS
 	result = q6asm_mmap_apr_dereg();
 	if (result < 0) {
 		pr_err("%s: q6asm_mmap_apr_dereg failed, err %d\n",
@@ -561,6 +564,7 @@ int q6asm_map_rtac_block(struct rtac_cal_block_data *cal_block)
 	} else {
 		common_client.mmap_apr = NULL;
 	}
+#endif
 done:
 	return result;
 }
@@ -603,6 +607,7 @@ int q6asm_unmap_rtac_block(uint32_t *mem_map_handle)
 		mem_map_handle = 0;
 	}
 
+#ifdef CONFIG_DEBUG_FS
 	result2 = q6asm_mmap_apr_dereg();
 	if (result2 < 0) {
 		pr_err("%s: q6asm_mmap_apr_dereg failed, err %d\n",
@@ -611,6 +616,7 @@ int q6asm_unmap_rtac_block(uint32_t *mem_map_handle)
 	} else {
 		common_client.mmap_apr = NULL;
 	}
+#endif
 done:
 	return result;
 }
@@ -643,6 +649,7 @@ int q6asm_unmap_cal_blocks(void)
 		topology_map_handle = 0;
 	}
 
+#ifdef CONFIG_DEBUG_FS
 	result2 = q6asm_mmap_apr_dereg();
 	if (result2 < 0) {
 		pr_err("%s: q6asm_mmap_apr_dereg failed, err %d\n",
@@ -651,7 +658,7 @@ int q6asm_unmap_cal_blocks(void)
 	} else {
 		common_client.mmap_apr = NULL;
 	}
-
+#endif
 	set_custom_topology = 0;
 
 done:
@@ -779,7 +786,9 @@ void q6asm_audio_client_free(struct audio_client *ac)
 	ac->mmap_apr = NULL;
 	rtac_set_asm_handle(ac->session, ac->apr);
 	q6asm_session_free(ac);
+#ifdef CONFIG_DEBUG_FS
 	q6asm_mmap_apr_dereg();
+#endif
 
 	pr_debug("%s: APR De-Register\n", __func__);
 
