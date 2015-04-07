@@ -329,16 +329,17 @@ include $(srctree)/scripts/Kbuild.include
 # Make variables (CC, etc...)
 
 AS		= $(CROSS_COMPILE)as
-LD		= $(CROSS_COMPILE)ld
+LD		= $(CROSS_COMPILE)ld.bfd
+LDFINAL = $(LD)
 REAL_CC		= $(CROSS_COMPILE)gcc
-LDFINAL	= $(LD)
 CPP		= $(CC) -E
 ifdef CONFIG_LTO_SLIM
 AR		= $(CROSS_COMPILE)gcc-ar
+NM              = $(CROSS_COMPILE)gcc-nm
 else
 AR		= $(CROSS_COMPILE)ar
+NM              = $(CROSS_COMPILE)nm
 endif
-NM		= $(CROSS_COMPILE)nm
 STRIP		= $(CROSS_COMPILE)strip
 OBJCOPY		= $(CROSS_COMPILE)objcopy
 OBJDUMP		= $(CROSS_COMPILE)objdump
