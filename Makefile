@@ -344,8 +344,14 @@ LD		= $(CROSS_COMPILE)ld.bfd
 LDFINAL	= $(LD)
 CC		= $(CROSS_COMPILE)gcc
 CPP		= $(CC) -E
+ifdef CONFIG_LTO_SLIM
 AR		= $(CROSS_COMPILE)gcc-ar
 NM		= $(CROSS_COMPILE)gcc-nm
+NM              = $(CROSS_COMPILE)gcc-nm
+else
+AR		= $(CROSS_COMPILE)ar
+NM              = $(CROSS_COMPILE)nm
+endif
 STRIP		= $(CROSS_COMPILE)strip
 OBJCOPY		= $(CROSS_COMPILE)objcopy
 OBJDUMP		= $(CROSS_COMPILE)objdump
