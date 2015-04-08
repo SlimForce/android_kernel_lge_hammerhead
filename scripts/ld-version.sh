@@ -1,4 +1,4 @@
-#!/usr/bin/gawk -f
+#!/usr/bin/awk -f
 # extra linker version number from stdin and turn into single number
 	{ 
 	n=split($0,v," ")

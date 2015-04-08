@@ -224,6 +224,9 @@ if [ -n "${CONFIG_KALLSYMS}" ] ; then
 	scripts/patchfile vmlinux $OFF .tmp_kallsyms2.bin
 fi
 
+info LDFINAL vmlinux
+vmlinux_link "${kallsymso}" vmlinux
+
 if [ -n "${CONFIG_BUILDTIME_EXTABLE_SORT}" ]; then
 	info SORTEX vmlinux
 	sortextable vmlinux
@@ -231,6 +234,18 @@ fi
 
 info SYSMAP System.map
 mksysmap vmlinux System.map
+
+# step a (see comment above)
+if [ -n "${CONFIG_KALLSYMS}" ]; then
+	mksysmap ${kallsyms_vmlinux} .tmp_System.map
+
+	if ! cmp -s System.map .tmp_System.map; then
+		echo Inconsistent kallsyms data
+		echo echo Try "make KALLSYMS_EXTRA_PASS=1" as a workaround
+		cleanup
+		exit 1
+	fi
+fi
 
 # We made a new kernel - delete old version file
 rm -f .old_version
