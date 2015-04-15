@@ -30,6 +30,9 @@
 #include <linux/kthread.h>
 #include <linux/slab.h>
 #include <asm/cputime.h>
+#ifdef CONFIG_STATE_NOTIFIER
+#include <linux/state_notifier.h>
+#endif
 
 static int active_count;
 
@@ -57,6 +60,11 @@ struct cpufreq_impulse_cpuinfo {
 };
 
 static DEFINE_PER_CPU(struct cpufreq_impulse_cpuinfo, cpuinfo);
+
+#ifdef CONFIG_STATE_NOTIFIER
+static struct notifier_block notif;
+#endif
+static bool suspended;
 
 /* realtime thread handles frequency scaling */
 static struct task_struct *speedchange_task;
@@ -402,11 +410,14 @@ static void cpufreq_impulse_timer(unsigned long data)
 	do_div(cputime_speedadj, delta_time);
 	loadadjfreq = (unsigned int)cputime_speedadj * 100;
 	cpu_load = loadadjfreq / pcpu->policy->cur;
-	boosted = boost_val || now < boostpulse_endtime ||
-			check_cpuboost(data) || cpu_load >= go_hispeed_load;
+	boosted = check_cpuboost(data) || boost_val ||
+			now < boostpulse_endtime ||
+			cpu_load >= go_hispeed_load;
+	boosted = boosted && !suspended;
 	this_hispeed_freq = max(hispeed_freq, pcpu->policy->min);
 
-	if (cpu_load <= go_lowspeed_load && !boost_val) {
+	if (cpu_load <= go_lowspeed_load &&
+		!boost_val) {
 		boosted = false;
 		new_freq = pcpu->policy->cpuinfo.min_freq;
 	} else {
@@ -631,14 +642,14 @@ static int cpufreq_impulse_speedchange_task(void *data)
 			}
 
 			if (max_freq != pcpu->policy->cur) {
-				if (!powersave_bias)
-					__cpufreq_driver_target(pcpu->policy,
-								max_freq,
-								CPUFREQ_RELATION_H);
-				else
+				if (powersave_bias || suspended)
 					__cpufreq_driver_target(pcpu->policy,
 								max_freq,
 								CPUFREQ_RELATION_C);
+				else
+					__cpufreq_driver_target(pcpu->policy,
+								max_freq,
+								CPUFREQ_RELATION_H);
 
 				for_each_cpu(j, pcpu->policy->cpus) {
 					pjcpu = &per_cpu(cpuinfo, j);
@@ -1363,6 +1374,25 @@ static int cpufreq_governor_impulse(struct cpufreq_policy *policy,
 	return 0;
 }
 
+#ifdef CONFIG_STATE_NOTIFIER
+static int state_notifier_callback(struct notifier_block *this,
+				unsigned long event, void *data)
+{
+	switch (event) {
+		case STATE_NOTIFIER_ACTIVE:
+			suspended = false;
+			break;
+		case STATE_NOTIFIER_SUSPEND:
+			suspended = true;
+			break;
+		default:
+			break;
+	}
+
+	return NOTIFY_OK;
+}
+#endif
+
 #ifndef CONFIG_CPU_FREQ_DEFAULT_GOV_IMPULSE
 static
 #endif
@@ -1412,6 +1442,12 @@ static int __init cpufreq_impulse_init(void)
 	/* NB: wake up so the thread does not look hung to the freezer */
 	wake_up_process(speedchange_task);
 
+#ifdef CONFIG_STATE_NOTIFIER
+	notif.notifier_call = state_notifier_callback;
+	if (state_register_client(&notif))
+		pr_err("Cannot register State notifier callback for impulse governor.\n");
+#endif
+
 	return cpufreq_register_governor(&cpufreq_gov_impulse);
 }
 
@@ -1423,6 +1459,13 @@ module_init(cpufreq_impulse_init);
 
 static void __exit cpufreq_impulse_exit(void)
 {
+	int cpu;
+	struct cpufreq_impulse_cpuinfo *pcpu;
+
+#ifdef CONFIG_STATE_NOTIFIER
+	state_unregister_client(&notif);
+#endif
+
 	cpufreq_unregister_governor(&cpufreq_gov_impulse);
 	kthread_stop(speedchange_task);
 	put_task_struct(speedchange_task);
